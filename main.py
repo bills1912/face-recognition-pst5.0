@@ -32,7 +32,7 @@ file = open('Files/EncodeFile.p', 'rb')
 encodeListKnownWithIds = pickle.load(file)
 file.close()
 encodeListKnown, studentIds = encodeListKnownWithIds
-print(studentIds, encodeListKnown)
+# print(studentIds, encodeListKnown)
 print("Encode File Loaded")
 
 modeType = 0
@@ -48,7 +48,7 @@ while True:
 
     faceCurFrame = face_recognition.face_locations(imgS)
     encodeCurFrame = face_recognition.face_encodings(imgS, faceCurFrame)
-    print(faceCurFrame)
+    # print(faceCurFrame)
 
     imgBackground[162:162 + 480, 55:55 + 640] = img
     imgBackground[44:44 + 633, 808:808 + 414] = imgModeList[modeType]
@@ -56,16 +56,16 @@ while True:
     if faceCurFrame:
         for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
             matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
-            print("matches", matches)
+            # print("matches", matches)
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
-            print("faceDis", faceDis)
+            # print("faceDis", faceDis)
 
             matchIndex = np.argmin(faceDis)
-            print("Match Index", matchIndex)
+            # print("Match Index", matchIndex)
 
             if matches[matchIndex]:
-                print("Known Face Detected")
-                print(studentIds[matchIndex])
+                # print("Known Face Detected")
+                # print(studentIds[matchIndex])
                 y1, x2, y2, x1 = faceLoc
                 y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
                 bbox = 55 + x1, 162 + y1, x2 - x1, y2 - y1
@@ -82,21 +82,19 @@ while True:
 
             if counter == 1:
                 # Get the Data
-                studentInfo = frecog_mongo_collect.find({'id':id})
-                print(studentInfo)
+                studentInfo = frecog_mongo_collect.find_one({'id':id})
                 # Get the Image from the storage
                 # blob = bucket.get_blob(f'Images/{id}.png')
                 # array = np.frombuffer(blob.download_as_string(), np.uint8)
                 # imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 # Update data of attendance
-                datetimeObject = datetime.strptime(studentInfo.next()['last_attendance_time'],
+                datetimeObject = datetime.strptime(studentInfo['last_attendance_time'],
                                                    "%Y-%m-%d %H:%M:%S")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
-                print(secondsElapsed)
                 if secondsElapsed > 30:
-                    ref = frecog_mongo_collect.find({'id':id})
-                    # studentInfo.next()['total_attendance'] += 1
-                    # ref.child('total_attendance').set(studentInfo.next()['total_attendance'])
+                    ref = frecog_mongo_collect.find_one({'id':id})
+                    studentInfo['total_attendance'] += 1
+                    # ref.child('total_attendance').set(studentInfo['total_attendance'])
                     # ref.child('last_attendance_time').set(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 else:
                     modeType = 3
@@ -110,26 +108,26 @@ while True:
 
                 imgBackground[44:44 + 633, 808:808 + 414] = imgModeList[modeType]
 
-                # if counter <= 10:
-                #     cv2.putText(imgBackground, str(studentInfo.next()['total_attendance']), (861, 125),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
-                #     cv2.putText(imgBackground, str(studentInfo.next()['major']), (1006, 550),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                #     cv2.putText(imgBackground, str(id), (1006, 493),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                #     cv2.putText(imgBackground, str(studentInfo.next()['standing']), (910, 625),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                #     cv2.putText(imgBackground, str(studentInfo.next()['year']), (1025, 625),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                #     cv2.putText(imgBackground, str(studentInfo.next()['starting_year']), (1125, 625),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                if counter <= 10:
+                    cv2.putText(imgBackground, str(studentInfo['total_attendance']), (861, 125), 
+                                cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
+                    cv2.putText(imgBackground, f"{studentInfo['major']}", (1006, 550),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
+                    cv2.putText(imgBackground, str(id), (1006, 493),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
+                    cv2.putText(imgBackground, str(studentInfo['standing']), (910, 625),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                    cv2.putText(imgBackground, str(studentInfo['year']), (1025, 625),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                    cv2.putText(imgBackground, str(studentInfo['starting_year']), (1125, 625),
+                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
 
-                #     (w, h), _ = cv2.getTextSize(studentInfo.next()['name'], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
-                #     offset = (414 - w) // 2
-                #     cv2.putText(imgBackground, str(studentInfo.next()['name']), (808 + offset, 445),
-                #                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
+                    (w, h), _ = cv2.getTextSize(studentInfo['name'], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
+                    offset = (414 - w) // 2
+                    cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
+                                cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
 
-                #     imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
+                    # imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
 
                 counter += 1
 
