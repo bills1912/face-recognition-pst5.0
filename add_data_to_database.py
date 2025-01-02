@@ -1,17 +1,12 @@
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
+from pymongo import MongoClient
 
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://faceattandancerealtime-6de8e-default-rtdb.firebaseio.com/"
-})
+client = MongoClient('path/of/mongodb/connection')
+frecog_mongo = client["face_recognition_mongo"]
+frecog_mongo_collect = frecog_mongo["frecog_data"]
 
-ref = db.reference('Students')
-
-data = {
-    "321654":
-        {
+data = [
+     {
+            "id":"321654",
             "name": "Murtaza Hassan",
             "major": "Robotics",
             "starting_year": 2017,
@@ -20,8 +15,8 @@ data = {
             "year": 4,
             "last_attendance_time": "2022-12-11 00:54:34"
         },
-    "852741":
-        {
+     {
+            "id":"852741",
             "name": "Emly Blunt",
             "major": "Economics",
             "starting_year": 2021,
@@ -30,8 +25,8 @@ data = {
             "year": 1,
             "last_attendance_time": "2022-12-11 00:54:34"
         },
-    "963852":
-        {
+     {
+            "id":"963852",
             "name": "Elon Musk",
             "major": "Physics",
             "starting_year": 2020,
@@ -40,7 +35,6 @@ data = {
             "year": 2,
             "last_attendance_time": "2022-12-11 00:54:34"
         }
-}
+]
 
-for key, value in data.items():
-    ref.child(key).set(value)
+frecog_mongo_insert = frecog_mongo_collect.insert_many(data)
