@@ -15,7 +15,7 @@ firebase_admin.initialize_app(cred, {
 
 
 # Importing student images
-folderPath = 'Images'
+folderPath = 'Files/Images'
 pathList = os.listdir(folderPath)
 print(pathList)
 imgList = []
