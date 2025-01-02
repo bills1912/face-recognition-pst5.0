@@ -1,0 +1,4 @@
+pymongodb
+face_recognition
+numpy
+cvzone
