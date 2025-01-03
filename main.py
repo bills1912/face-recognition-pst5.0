@@ -3,6 +3,7 @@ import cv2
 import pickle
 import cvzone
 import numpy as np
+from io import BytesIO
 from datetime import datetime
 
 import face_recognition
@@ -11,6 +12,7 @@ from pymongo import MongoClient
 client = MongoClient('path/of/mongodb/connection')
 frecog_mongo = client["face_recognition_mongo"]
 frecog_mongo_collect = frecog_mongo["frecog_data"]
+frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
@@ -56,16 +58,11 @@ while True:
     if faceCurFrame:
         for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
             matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
-            # print("matches", matches)
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
-            # print("faceDis", faceDis)
 
             matchIndex = np.argmin(faceDis)
-            # print("Match Index", matchIndex)
 
             if matches[matchIndex]:
-                # print("Known Face Detected")
-                # print(studentIds[matchIndex])
                 y1, x2, y2, x1 = faceLoc
                 y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
                 bbox = 55 + x1, 162 + y1, x2 - x1, y2 - y1
@@ -77,16 +74,15 @@ while True:
                     cv2.waitKey(1)
                     counter = 1
                     modeType = 1
-
+                
         if counter != 0:
 
             if counter == 1:
                 # Get the Data
                 studentInfo = frecog_mongo_collect.find_one({'id':id})
                 # Get the Image from the storage
-                # blob = bucket.get_blob(f'Images/{id}.png')
-                # array = np.frombuffer(blob.download_as_string(), np.uint8)
-                # imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
+                array = np.asanyarray(bytearray(BytesIO(frecog_mongo_coll_img.find_one({'id':id})['img_data']).read()), np.uint8)
+                imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 # Update data of attendance
                 datetimeObject = datetime.strptime(studentInfo['last_attendance_time'],
                                                    "%Y-%m-%d %H:%M:%S")
@@ -127,7 +123,7 @@ while True:
                     cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
 
-                    # imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
+                    imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
 
                 counter += 1
 
