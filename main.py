@@ -2,11 +2,17 @@ import os
 import cv2
 import pickle
 import cvzone
+import pyttsx3
+import playsound
 import numpy as np
+import face_recognition
+from pydub import AudioSegment
+from pydub.playback import play
+
+from PIL import Image
+from gtts import gTTS
 from io import BytesIO
 from datetime import datetime
-
-import face_recognition
 from pymongo import MongoClient
 
 client = MongoClient('path/of/mongodb/connection')
@@ -17,6 +23,11 @@ frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
+mp3_fp = BytesIO()
+engine = pyttsx3.init()
+engine.setProperty('rate', 125)
+engine.setProperty('volume', 2.0)
+engine.setProperty('voice', engine.getProperty('voices')[0].id)
 
 imgBackground = cv2.imread('Files/Resources/background.png')
 
@@ -122,6 +133,16 @@ while True:
                     offset = (414 - w) // 2
                     cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
+                    
+                    # Text-to-speech from detected guest's name
+                    audio_name = studentInfo['name']
+                    tts = gTTS(audio_name, lang='id', slow=False)
+                    tts.save(f"{audio_name}.mp3")
+                    audio = AudioSegment.from_mp3(f"{audio_name}.mp3")
+                    play(audio)
+                    os.remove(f"{audio_name}.mp3")
+                    # engine.say(studentInfo['name'])
+                    # engine.runAndWait()
 
                     imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
 

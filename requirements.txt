@@ -2,3 +2,5 @@ pymongodb
 face_recognition
 numpy
 cvzone
+pyttsx3
+pydub
