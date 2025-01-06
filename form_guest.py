@@ -1,11 +1,17 @@
-from customtkinter import *
+from pymongo import MongoClient
 from PIL import Image
+from customtkinter import *
+
+client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
+frecog_mongo = client["face_recognition_mongo"]
+frecog_mongo_collect = frecog_mongo["frecog_data"]
+frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
 app = CTk()
-app.geometry("600x600")
+app.geometry("680x480")
 app.resizable(0,0)
 
-def new_guest_form():
+def new_guest_form(id, img_guest):
         side_img_data = Image.open("side-img.png")
 
         side_img = CTkImage(dark_image=side_img_data, light_image=side_img_data, size=(300, 480))
@@ -46,9 +52,25 @@ def new_guest_form():
         keperluan.pack(anchor="w", padx=(25, 0))
 
         # CTkScrollbar(app, command=frame.y)
-
+        
         def form_submit():
                 print(f"Name:{name.get()}\nKeperluan Mengunjungi PST: {keperluan.get('0.0', 'end')}")
+                guest_data = {
+                        "id":id,
+                        "name": f"{name.get()}",
+                        "job": f"{kerja.get()}",
+                        "phone_number": f"{tel.get()}",
+                        "address": f"{alamat.get('0.0', 'end')}",
+                        "attandance": 4,
+                        "purpose": f"{keperluan.get('0.0', 'end')}",
+                        "last_attendance_time": "2022-12-11 00:54:34"
+                }
+                
+                guest_photo = {"id":id, "img_data":img_guest}
+                
+                frecog_mongo_collect.insert_one(guest_data)
+                frecog_mongo_coll_img.insert_one(guest_photo)
+                
                 app.destroy()
                 # print(keperluan.get("0.0", "end"))
 
