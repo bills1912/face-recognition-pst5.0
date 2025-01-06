@@ -49,6 +49,7 @@ def new_guest_form():
 
         def form_submit():
                 print(f"Name:{name.get()}\nKeperluan Mengunjungi PST: {keperluan.get('0.0', 'end')}")
+                app.destroy()
                 # print(keperluan.get("0.0", "end"))
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
