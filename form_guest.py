@@ -12,8 +12,7 @@ def new_guest_form():
 
         CTkLabel(master=app, text="", image=side_img).pack(expand=True, side="left")
 
-        frame = CTkFrame(master=app, width=300, height=480, fg_color="#ffffff")
-        frame.pack_propagate(0)
+        frame = CTkScrollableFrame(master=app, width=350, height=480, fg_color="#ffffff")
         frame.pack(expand=True, side="right")
 
         CTkLabel(master=frame, text="Selamat Datang di PST 5.0!", text_color="#601E88", anchor="w", justify="left", 
@@ -23,18 +22,36 @@ def new_guest_form():
 
         CTkLabel(master=frame, text="Nama:", text_color="#601E88", anchor="w", justify="left", font=("Arial Bold", 14))\
                 .pack(anchor="w", pady=(38, 0), padx=(25, 0))
-        name = CTkEntry(master=frame, width=225, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000")
+        name = CTkEntry(master=frame, width=300, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000")
         name.pack(anchor="w", padx=(25, 0))
 
+        CTkLabel(master=frame, text="Alamat:", text_color="#601E88", anchor="w", justify="left", font=("Arial Bold", 14))\
+                .pack(anchor="w", pady=(10, 0), padx=(25, 0))
+        alamat = CTkTextbox(master=frame, width=300, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000", height=80)
+        alamat.pack(anchor="w", padx=(25, 0))
+
+        CTkLabel(master=frame, text="Nomor Telepon:", text_color="#601E88", anchor="w", justify="left", font=("Arial Bold", 14))\
+                .pack(anchor="w", pady=(10, 0), padx=(25, 0))
+        tel = CTkEntry(master=frame, width=300, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000")
+        tel.pack(anchor="w", padx=(25, 0))
+
+        CTkLabel(master=frame, text="Pekerjaan:", text_color="#601E88", anchor="w", justify="left", font=("Arial Bold", 14))\
+                .pack(anchor="w", pady=(10, 0), padx=(25, 0))
+        kerja = CTkEntry(master=frame, width=300, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000")
+        kerja.pack(anchor="w", padx=(25, 0))
+
         CTkLabel(master=frame, text="Keperluan Mengunjungi PST:", text_color="#601E88", anchor="w", justify="left", font=("Arial Bold", 14))\
-                .pack(anchor="w", pady=(21, 0), padx=(25, 0))
-        keperluan = CTkEntry(master=frame, width=225, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000")
+                .pack(anchor="w", pady=(10, 0), padx=(25, 0))
+        keperluan = CTkTextbox(master=frame, width=300, fg_color="#EEEEEE", border_color="#601E88", border_width=1, text_color="#000000", height=80)
         keperluan.pack(anchor="w", padx=(25, 0))
-        
+
+        # CTkScrollbar(app, command=frame.y)
+
         def form_submit():
-                print(f"Name:{name.get()}\nKeperluan Mengunjungi PST: {keperluan.get()}")
-                
-        CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 12), 
-                text_color="#ffffff", width=225, command=form_submit).pack(anchor="w", pady=(40, 0), padx=(25, 0))
+                print(f"Name:{name.get()}\nKeperluan Mengunjungi PST: {keperluan.get('0.0', 'end')}")
+                # print(keperluan.get("0.0", "end"))
+
+        CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
+                text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))
         
         app.mainloop()
