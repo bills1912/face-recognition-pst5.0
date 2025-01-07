@@ -17,6 +17,8 @@ from gtts import gTTS
 from io import BytesIO
 from datetime import datetime
 from pymongo import MongoClient
+from form_guest import new_guest_form
+from encode_generator import findEncodings
 
 client = MongoClient('path/of/mongodb/connection')
 frecog_mongo = client["face_recognition_mongo"]
@@ -48,10 +50,12 @@ for path in modePathList:
 # print(len(imgModeList))
 
 # Load the encoding file
-print("Loading Encode File ...")
-file = open('Files/EncodeFile.p', 'rb')
-encodeListKnownWithIds = pickle.load(file)
-file.close()
+img_list = []
+cursor = frecog_mongo_coll_img.find()
+for document in cursor:
+    img_list.append(document['id'])
+
+encodeListKnownWithIds = findEncodings(img_list)
 encodeListKnown, studentIds = encodeListKnownWithIds
 # print(studentIds, encodeListKnown)
 print("Encode File Loaded")
@@ -98,7 +102,7 @@ while True:
                         modeType = 1
             else:
                 guest_img_bytes = BytesIO()
-                new_id = random.randint(100000, 999999)
+                new_id = str(random.randint(100000, 999999))
                 img_name = f"{new_id}.png"
                 guest_img_path = os.path.join(img_path, img_name)
                 cv2.imwrite(guest_img_path, img=img)
@@ -108,14 +112,23 @@ while True:
                 new_guest_form(id=new_id, img_guest=guest_img_bytes.getvalue())
                 os.remove(guest_img_path)
                 
+                img_list = []
+                cursor = frecog_mongo_coll_img.find()
+                for document in cursor:
+                    img_list.append(document['id'])
+                encodeListKnownWithIds = findEncodings(img_list)
+                encodeListKnown, studentIds = encodeListKnownWithIds
+                
         if counter != 0:
 
             if counter == 1:
                 # Get the Data
                 studentInfo = frecog_mongo_collect.find_one({'id':id})
+                
                 # Get the Image from the storage
                 array = np.asanyarray(bytearray(BytesIO(frecog_mongo_coll_img.find_one({'id':id})['img_data']).read()), np.uint8)
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
+                
                 # Update data of attendance
                 datetimeObject = datetime.strptime(studentInfo['last_attendance_time'],
                                                    "%Y-%m-%d %H:%M:%S")
@@ -140,23 +153,23 @@ while True:
                 if counter <= 10:
                     cv2.putText(imgBackground, str(studentInfo['total_attendance']), (861, 125), 
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
-                    cv2.putText(imgBackground, f"{studentInfo['major']}", (1006, 550),
+                    cv2.putText(imgBackground, f"{studentInfo['job']}", (1006, 550),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
                     cv2.putText(imgBackground, str(id), (1006, 493),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                    cv2.putText(imgBackground, str(studentInfo['standing']), (910, 625),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                    cv2.putText(imgBackground, str(studentInfo['year']), (1025, 625),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                    cv2.putText(imgBackground, str(studentInfo['starting_year']), (1125, 625),
-                                cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                    # cv2.putText(imgBackground, str(studentInfo['standing']), (910, 625),
+                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                    # cv2.putText(imgBackground, str(studentInfo['year']), (1025, 625),
+                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
+                    # cv2.putText(imgBackground, str(studentInfo['starting_year']), (1125, 625),
+                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
 
                     (w, h), _ = cv2.getTextSize(studentInfo['name'], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
                     offset = (414 - w) // 2
                     cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
                     
-                    imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
+                    # imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
                     
                     # Text-to-speech from detected guest's name
                     audio_name = studentInfo['name']
@@ -177,11 +190,10 @@ while True:
                     studentInfo = []
                     imgStudent = []
                     imgBackground[44:44 + 633, 808:808 + 414] = imgModeList[modeType]
-
+        time.sleep(2)
     else:
         modeType = 0
         counter = 0
-    time.sleep(2)
     # cv2.imshow("Webcam", img)
     cv2.imshow("Face Attendance", imgBackground)
     cv2.waitKey(1)
