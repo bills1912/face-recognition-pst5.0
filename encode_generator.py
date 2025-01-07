@@ -1,6 +1,4 @@
-import os
 import cv2
-import pickle
 import numpy as np
 import face_recognition
 
@@ -8,53 +6,23 @@ from PIL import Image
 from io import BytesIO
 from pymongo import MongoClient
 
-# Importing student images
-folderPath = 'Files/Images'
-pathList = os.listdir(folderPath)
-print(pathList)
-imgList = []
-studentIds = []
-
-client = MongoClient('path/of/mongodb/connection')
+client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
 frecog_mongo = client["face_recognition_mongo"]
 frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
-for path in pathList:
-    imgList.append(cv2.imread(os.path.join(folderPath, path)))
-    studentIds.append(os.path.splitext(path)[0])
-
-    img_bytes = BytesIO()
-    fileName = f'{folderPath}/{path}'
-    img_file = Image.open(fileName)
-    img_file.save(img_bytes, format='PNG')
-    img_mongo_data = {"id":path.split(".")[0], "img_data":img_bytes.getvalue()}
-    frecog_mongo_coll_img.insert_one(img_mongo_data)
-
-print(studentIds)
-
-
 def findEncodings(imagesList):
+    id_list = []
     encodeList = []
-    for id, img in imagesList:
+    for id in imagesList:
+        id_list.append(id)
         array = np.asanyarray(bytearray(BytesIO(frecog_mongo_coll_img.find_one({'id':id})['img_data']).read()), np.uint8)
         arr_decode = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
         img = cv2.cvtColor(arr_decode, cv2.COLOR_BGR2RGB)
         encode = face_recognition.face_encodings(img)[0]
         encodeList.append(encode)
+    img_encode_with_id = [encodeList, id_list]
 
-    return encodeList
-
-
-print("Encoding Started ...")
-encodeListKnown = findEncodings(imgList)
-print(encodeListKnown)
-encodeListKnownWithIds = [encodeListKnown, studentIds]
-print("Encoding Complete")
-
-file = open("EncodeFile.p", 'wb')
-pickle.dump(encodeListKnownWithIds, file)
-file.close()
-print("File Saved")
+    return img_encode_with_id
 
 
 
