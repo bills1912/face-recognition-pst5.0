@@ -54,16 +54,15 @@ def new_guest_form(id, img_guest):
         # CTkScrollbar(app, command=frame.y)
         
         def form_submit():
-                print(f"Name:{name.get()}\nKeperluan Mengunjungi PST: {keperluan.get('0.0', 'end')}")
                 guest_data = {
                         "id":id,
                         "name": f"{name.get()}",
                         "job": f"{kerja.get()}",
                         "phone_number": f"{tel.get()}",
                         "address": f"{alamat.get('0.0', 'end')}",
-                        "attandance": 4,
+                        "attandance": 0,
                         "purpose": f"{keperluan.get('0.0', 'end')}",
-                        "last_attendance_time": "2022-12-11 00:54:34"
+                        "last_attendance_time": ""
                 }
                 
                 guest_photo = {"id":id, "img_data":img_guest}
@@ -72,7 +71,6 @@ def new_guest_form(id, img_guest):
                 frecog_mongo_coll_img.insert_one(guest_photo)
                 
                 app.destroy()
-                # print(keperluan.get("0.0", "end"))
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
                 text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))

@@ -130,14 +130,12 @@ while True:
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 
                 # Update data of attendance
-                datetimeObject = datetime.strptime(studentInfo['last_attendance_time'],
-                                                   "%Y-%m-%d %H:%M:%S")
+                datetimeObject = datetime.strptime(studentInfo['last_attendance_time'], "%Y-%m-%d %H:%M:%S")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
                 if secondsElapsed > 30:
-                    ref = frecog_mongo_collect.find_one({'id':id})
                     studentInfo['total_attendance'] += 1
-                    # ref.child('total_attendance').set(studentInfo['total_attendance'])
-                    # ref.child('last_attendance_time').set(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    frecog_mongo_collect.update_one({'id':id}, {"$set": {"total_attendance": studentInfo['total_attendance']}})
+                    frecog_mongo_collect.update_one({'id':id}, {"$set": {"last_attendance_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}})
                 else:
                     modeType = 3
                     counter = 0
@@ -157,19 +155,13 @@ while True:
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
                     cv2.putText(imgBackground, str(id), (1006, 493),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                    # cv2.putText(imgBackground, str(studentInfo['standing']), (910, 625),
-                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                    # cv2.putText(imgBackground, str(studentInfo['year']), (1025, 625),
-                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
-                    # cv2.putText(imgBackground, str(studentInfo['starting_year']), (1125, 625),
-                    #             cv2.FONT_HERSHEY_COMPLEX, 0.6, (100, 100, 100), 1)
 
                     (w, h), _ = cv2.getTextSize(studentInfo['name'], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
                     offset = (414 - w) // 2
                     cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
                     
-                    # imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
+                    imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
                     
                     # Text-to-speech from detected guest's name
                     audio_name = studentInfo['name']
@@ -197,3 +189,7 @@ while True:
     # cv2.imshow("Webcam", img)
     cv2.imshow("Face Attendance", imgBackground)
     cv2.waitKey(1)
+    if 0xFF == ord('q'):
+        break
+cap.release()
+cv2.destroyAllWindows()
