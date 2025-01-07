@@ -1,6 +1,7 @@
 import os
 import cv2
 import pickle
+import numpy as np
 import face_recognition
 
 from PIL import Image
@@ -34,8 +35,10 @@ print(studentIds)
 
 def findEncodings(imagesList):
     encodeList = []
-    for img in imagesList:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    for id, img in imagesList:
+        array = np.asanyarray(bytearray(BytesIO(frecog_mongo_coll_img.find_one({'id':id})['img_data']).read()), np.uint8)
+        arr_decode = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
+        img = cv2.cvtColor(arr_decode, cv2.COLOR_BGR2RGB)
         encode = face_recognition.face_encodings(img)[0]
         encodeList.append(encode)
 
