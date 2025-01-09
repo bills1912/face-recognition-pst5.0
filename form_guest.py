@@ -1,6 +1,7 @@
-from pymongo import MongoClient
+import datetime
 from PIL import Image
 from customtkinter import *
+from pymongo import MongoClient
 
 client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
 frecog_mongo = client["face_recognition_mongo"]
@@ -62,7 +63,7 @@ def new_guest_form(id, img_guest):
                         "address": f"{alamat.get('0.0', 'end')}",
                         "attandance": 0,
                         "purpose": f"{keperluan.get('0.0', 'end')}",
-                        "last_attendance_time": ""
+                        "last_attendance_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 }
                 
                 guest_photo = {"id":id, "img_data":img_guest}
@@ -70,7 +71,7 @@ def new_guest_form(id, img_guest):
                 frecog_mongo_collect.insert_one(guest_data)
                 frecog_mongo_coll_img.insert_one(guest_photo)
                 
-                app.withdraw()
+                app.quit()
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
                 text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))
