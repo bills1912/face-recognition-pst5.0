@@ -70,7 +70,7 @@ def new_guest_form(id, img_guest):
                 frecog_mongo_collect.insert_one(guest_data)
                 frecog_mongo_coll_img.insert_one(guest_photo)
                 
-                app.destroy()
+                app.withdraw()
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
                 text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))
