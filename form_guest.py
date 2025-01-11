@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from PIL import Image
 from customtkinter import *
 from pymongo import MongoClient
@@ -8,11 +8,10 @@ frecog_mongo = client["face_recognition_mongo"]
 frecog_mongo_collect = frecog_mongo["frecog_data"]
 frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
-app = CTk()
-app.geometry("680x480")
-app.resizable(0,0)
-
 def new_guest_form(id, img_guest):
+        app = CTk()
+        app.geometry("680x480")
+        app.resizable(0,0)
         side_img_data = Image.open("side-img.png")
 
         side_img = CTkImage(dark_image=side_img_data, light_image=side_img_data, size=(300, 480))
@@ -53,7 +52,7 @@ def new_guest_form(id, img_guest):
         keperluan.pack(anchor="w", padx=(25, 0))
 
         # CTkScrollbar(app, command=frame.y)
-        
+
         def form_submit():
                 guest_data = {
                         "id":id,
@@ -61,7 +60,7 @@ def new_guest_form(id, img_guest):
                         "job": f"{kerja.get()}",
                         "phone_number": f"{tel.get()}",
                         "address": f"{alamat.get('0.0', 'end')}",
-                        "attandance": 0,
+                        "total_attendance": 0,
                         "purpose": f"{keperluan.get('0.0', 'end')}",
                         "last_attendance_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                 }
@@ -71,9 +70,8 @@ def new_guest_form(id, img_guest):
                 frecog_mongo_collect.insert_one(guest_data)
                 frecog_mongo_coll_img.insert_one(guest_photo)
                 
-                app.deiconify()
+                app.withdraw()
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
                 text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))
-        
         app.mainloop()
