@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import time
 import random
@@ -19,6 +20,8 @@ from datetime import datetime
 from pymongo import MongoClient
 from form_guest import new_guest_form
 from encode_generator import findEncodings
+
+sys.dont_write_bytecode = True
 
 client = MongoClient('path/of/mongodb/connection')
 frecog_mongo = client["face_recognition_mongo"]
