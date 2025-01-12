@@ -1,6 +1,9 @@
-pymongodb
+pymongo
 face_recognition
 numpy
 cvzone
 pyttsx3
 pydub
+opencv-python
+customtkinter
+gTTS
