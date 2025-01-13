@@ -23,7 +23,7 @@ from encode_generator import findEncodings
 
 sys.dont_write_bytecode = True
 
-client = MongoClient('path/of/mongodb/connection')
+client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
 frecog_mongo = client["face_recognition_mongo"]
 frecog_mongo_collect = frecog_mongo["frecog_data"]
 frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
@@ -109,16 +109,13 @@ while True:
                 img_name = f"{new_id}.png"
                 guest_img_path = os.path.join(img_path, img_name)
                 cv2.imwrite(guest_img_path, img=img)
-                guest_img = Image.open(guest_img_path)
+                guest_img = Image.open(guest_img_path).resize((216, 216))
                 guest_img.save(guest_img_bytes, format='PNG')
                 
                 new_guest_form(id=new_id, img_guest=guest_img_bytes.getvalue())
                 os.remove(guest_img_path)
                 
-                img_list = []
-                cursor = frecog_mongo_coll_img.find()
-                for document in cursor:
-                    img_list.append(document['id'])
+                img_list.append(new_id)
                 encodeListKnownWithIds = findEncodings(img_list)
                 encodeListKnown, studentIds = encodeListKnownWithIds
                 
@@ -194,5 +191,3 @@ while True:
     cv2.waitKey(1)
     if 0xFF == ord('q'):
         break
-cap.release()
-cv2.destroyAllWindows()
