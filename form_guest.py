@@ -9,14 +9,14 @@ frecog_mongo_collect = frecog_mongo["frecog_data"]
 frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
 def new_guest_form(id, img_guest):
-        app = CTk()
+        app = CTkToplevel()
         app.geometry("680x480")
         app.resizable(0,0)
         side_img_data = Image.open("side-img.png")
 
         side_img = CTkImage(dark_image=side_img_data, light_image=side_img_data, size=(300, 480))
 
-        CTkLabel(master=app, text="", image=side_img).pack(expand=True, side="left")
+        CTkLabel(master=app, image=side_img).pack(expand=True, side="left")
 
         frame = CTkScrollableFrame(master=app, width=350, height=480, fg_color="#ffffff")
         frame.pack(expand=True, side="right")
@@ -70,7 +70,7 @@ def new_guest_form(id, img_guest):
                 frecog_mongo_collect.insert_one(guest_data)
                 frecog_mongo_coll_img.insert_one(guest_photo)
                 
-                app.withdraw()
+                app.quit()
 
         CTkButton(frame, text="Submit", fg_color="#601E88", hover_color="#E44982", font=("Arial Bold", 13), 
                 text_color="#ffffff", width=300, height=40, command=form_submit).pack(anchor="w", pady=(40, 20), padx=(25, 0))
