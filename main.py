@@ -90,7 +90,7 @@ while True:
             matchIndex = np.argmin(faceDis)
             # print(matchIndex)
 
-            if (True in matches):
+            if ((True in matches) or (len(matches) != 0)):
                 if matches[matchIndex]:
                     y1, x2, y2, x1 = faceLoc
                     y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
