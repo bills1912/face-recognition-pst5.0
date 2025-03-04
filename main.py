@@ -3,10 +3,9 @@ import sys
 import cv2
 import time
 import random
-import pickle
 import cvzone
+import sqlite3
 import pyttsx3
-import playsound
 import numpy as np
 import face_recognition
 from pydub import AudioSegment
@@ -23,10 +22,13 @@ from encode_generator import findEncodings
 
 sys.dont_write_bytecode = True
 
-client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
-frecog_mongo = client["face_recognition_mongo"]
-frecog_mongo_collect = frecog_mongo["frecog_data"]
-frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
+# client = TinyDB("face_recog_tinydb.json")
+# frecog_tinydb_collect = client.table(name='frecog_data')
+# frecog_tinydb_coll_img = client.table(name='image_recog_data')
+# User = Query()
+
+sqliteConn = sqlite3.connect("face_recog_pst5_1200.db")
+cursor = sqliteConn.cursor()
 
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
@@ -54,9 +56,9 @@ for path in modePathList:
 
 # Load the encoding file
 img_list = []
-cursor = frecog_mongo_coll_img.find()
-for document in cursor:
-    img_list.append(document['id'])
+all_data_info = cursor.execute("""SELECT id FROM image_recog_data""").fetchall()
+for document in all_data_info:
+    img_list.append(document[0])
 
 encodeListKnownWithIds = findEncodings(img_list)
 encodeListKnown, studentIds = encodeListKnownWithIds
@@ -84,13 +86,13 @@ while True:
         for encodeFace, faceLoc in zip(encodeCurFrame, faceCurFrame):
             # face_recognition.compare
             matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
-            print(matches)
+            # print(len(matches))
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
 
-            matchIndex = np.argmin(faceDis)
             # print(matchIndex)
 
-            if ((True in matches) or (len(matches) != 0)):
+            if ((True in matches) and (len(matches) != 0)):
+                matchIndex = np.argmin(faceDis)
                 if matches[matchIndex]:
                     y1, x2, y2, x1 = faceLoc
                     y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
@@ -123,19 +125,21 @@ while True:
 
             if counter == 1:
                 # Get the Data
-                studentInfo = frecog_mongo_collect.find_one({'id':id})
+                studentInfo = cursor.execute(f"""SELECT * FROM frecog_data WHERE id={id}""").fetchall()[0][0]
                 
                 # Get the Image from the storage
-                array = np.asanyarray(bytearray(BytesIO(frecog_mongo_coll_img.find_one({'id':id})['img_data']).read()), np.uint8)
+                array = np.asanyarray(bytearray(BytesIO(cursor.execute(f"""SELECT img_data FROM image_recog_data WHERE id={id}""").fetchall()[0][0]).read()), np.uint8)
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 
                 # Update data of attendance
-                datetimeObject = datetime.strptime(studentInfo['last_attendance_time'], "%Y-%m-%d %H:%M:%S")
+                datetimeObject = datetime.strptime(cursor.execute(f"""SELECT last_attendance_time FROM frecog_data WHERE id={id}""").fetchall()[0][0], "%Y-%m-%d %H:%M:%S")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
                 if secondsElapsed > 30:
-                    studentInfo['total_attendance'] += 1
-                    frecog_mongo_collect.update_one({'id':id}, {"$set": {"total_attendance": studentInfo['total_attendance']}})
-                    frecog_mongo_collect.update_one({'id':id}, {"$set": {"last_attendance_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}})
+                    curr_total_attendance = cursor.execute(f"""SELECT total_attendance FROM frecog_data WHERE id={id}""").fetchall()[0][0]
+                    curr_total_attendance += 1
+                    cursor.execute(f"""UPDATE frecog_data SET total_attendance={curr_total_attendance} WHERE id={id}""")
+                    cursor.execute(f"""UPDATE frecog_data SET last_attendance_time={str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))} WHERE id={id}""")
+                    sqliteConn.commit()
                 else:
                     modeType = 3
                     counter = 0
@@ -149,22 +153,22 @@ while True:
                 imgBackground[44:44 + 633, 808:808 + 414] = imgModeList[modeType]
 
                 if counter <= 10:
-                    cv2.putText(imgBackground, str(studentInfo['total_attendance']), (861, 125), 
+                    cv2.putText(imgBackground, str(cursor.execute(f"""SELECT total_attendance FROM frecog_data WHERE id={id}""").fetchall()[0][0]), (861, 125), 
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 1)
-                    cv2.putText(imgBackground, f"{studentInfo['job']}", (1006, 550),
+                    cv2.putText(imgBackground, cursor.execute(f"""SELECT job FROM frecog_data WHERE id={id}""").fetchall()[0][0], (1006, 550),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                    cv2.putText(imgBackground, str(id), (1006, 493),
+                    cv2.putText(imgBackground, str(cursor.execute(f"""SELECT id FROM frecog_data WHERE id={id}""").fetchall()[0][0]), (1006, 493),
                                 cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
 
-                    (w, h), _ = cv2.getTextSize(studentInfo['name'], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
+                    (w, h), _ = cv2.getTextSize(cursor.execute(f"""SELECT name FROM frecog_data WHERE id={id}""").fetchall()[0][0], cv2.FONT_HERSHEY_COMPLEX, 1, 1)
                     offset = (414 - w) // 2
-                    cv2.putText(imgBackground, str(studentInfo['name']), (808 + offset, 445),
+                    cv2.putText(imgBackground, str(cursor.execute(f"""SELECT name FROM frecog_data WHERE id={id}""").fetchall()[0][0]), (808 + offset, 445),
                                 cv2.FONT_HERSHEY_COMPLEX, 1, (50, 50, 50), 1)
                     
                     imgBackground[175:175 + 216, 909:909 + 216] = imgStudent
                     
                     # Text-to-speech from detected guest's name
-                    audio_name = studentInfo['name']
+                    audio_name = cursor.execute(f"""SELECT name FROM frecog_data WHERE id={id}""").fetchall()[0][0]
                     tts = gTTS(audio_name, lang='id', slow=False)
                     tts.save(f"{audio_name}.mp3")
                     audio = AudioSegment.from_mp3(f"{audio_name}.mp3")

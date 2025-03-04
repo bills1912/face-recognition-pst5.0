@@ -2,13 +2,18 @@ from datetime import datetime
 from PIL import Image
 from customtkinter import *
 from pymongo import MongoClient
+from io import BytesIO
+import numpy as np
+import sqlite3
 
-client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
-frecog_mongo = client["face_recognition_mongo"]
-frecog_mongo_collect = frecog_mongo["frecog_data"]
-frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
+# client = MongoClient('mongodb+srv://ricardozalukhu1925:kuran1925@cluster0.lhmox.mongodb.net/')
+# frecog_mongo = client["face_recognition_mongo"]
+# frecog_mongo_collect = frecog_mongo["frecog_data"]
+# frecog_mongo_coll_img = frecog_mongo["image_recog_data"]
 
 def new_guest_form(id, img_guest):
+        sqliteConn = sqlite3.connect("face_recog_pst5_1200.db")
+        cursor = sqliteConn.cursor()
         app = CTkToplevel()
         app.geometry("680x480")
         app.resizable(0,0)
@@ -54,21 +59,31 @@ def new_guest_form(id, img_guest):
         # CTkScrollbar(app, command=frame.y)
 
         def form_submit():
-                guest_data = {
-                        "id":id,
-                        "name": f"{name.get()}",
-                        "job": f"{kerja.get()}",
-                        "phone_number": f"{tel.get()}",
-                        "address": f"{alamat.get('0.0', 'end')}",
-                        "total_attendance": 0,
-                        "purpose": f"{keperluan.get('0.0', 'end')}",
-                        "last_attendance_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                }
+                # guest_data = {
+                #         "id":id,
+                #         "name": f"{name.get()}",
+                #         "job": f"{kerja.get()}",
+                #         "phone_number": f"{tel.get()}",
+                #         "address": f"{alamat.get('0.0', 'end')}",
+                #         "total_attendance": 1,
+                #         "purpose": f"{keperluan.get('0.0', 'end')}",
+                #         "last_attendance_time": f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                # }
+                guest_data_sql = """INSERT INTO frecog_data(id, name, job, phone_number, address, total_attendance, purpose, last_attendance_time) 
+                                        VALUES(?,?,?,?,?,?,?,?)"""
                 
-                guest_photo = {"id":id, "img_data":img_guest}
+                guest_photo = """INSERT INTO image_recog_data(id, img_data) VALUES(?,?)"""
+                                        
+                # img_bytes = np.asanyarray(bytearray(BytesIO(img_guest).read()), np.uint8)
+                # guest_photo = {"id":id, "img_data":",".join(str(arr) for arr in img_bytes)}
                 
-                frecog_mongo_collect.insert_one(guest_data)
-                frecog_mongo_coll_img.insert_one(guest_photo)
+                # frecog_tinydb_collect.insert(guest_data)
+                # frecog_tinydb_coll_img.insert(guest_photo)
+                cursor.execute(guest_data_sql, (id, name.get(), kerja.get(), tel.get(), alamat.get('0.0', 'end'), 1, keperluan.get('0.0', 'end'), 
+                                                datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+                cursor.execute(guest_photo, (id, img_guest))
+                
+                sqliteConn.commit()
                 
                 app.quit()
 
