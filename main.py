@@ -132,13 +132,13 @@ while True:
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 
                 # Update data of attendance
-                datetimeObject = datetime.strptime(cursor.execute(f"""SELECT last_attendance_time FROM frecog_data WHERE id={id}""").fetchall()[0][0], "%Y-%m-%d %H:%M:%S")
+                datetimeObject = datetime.strptime(cursor.execute(f"""SELECT last_attendance_time FROM frecog_data WHERE id={id}""").fetchall()[0][0], "%Y-%m-%d-%H-%M-%S")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
                 if secondsElapsed > 30:
                     curr_total_attendance = cursor.execute(f"""SELECT total_attendance FROM frecog_data WHERE id={id}""").fetchall()[0][0]
                     curr_total_attendance += 1
                     cursor.execute(f"""UPDATE frecog_data SET total_attendance={curr_total_attendance} WHERE id={id}""")
-                    cursor.execute(f"""UPDATE frecog_data SET last_attendance_time={str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))} WHERE id={id}""")
+                    cursor.execute(f"""UPDATE frecog_data SET last_attendance_time={datetime.now().strftime("%Y-%m-%d-%H-%M-%S")} WHERE id={id}""")
                     sqliteConn.commit()
                 else:
                     modeType = 3
