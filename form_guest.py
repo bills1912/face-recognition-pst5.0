@@ -80,7 +80,7 @@ def new_guest_form(id, img_guest):
                 # frecog_tinydb_collect.insert(guest_data)
                 # frecog_tinydb_coll_img.insert(guest_photo)
                 cursor.execute(guest_data_sql, (id, name.get(), kerja.get(), tel.get(), alamat.get('0.0', 'end'), 1, keperluan.get('0.0', 'end'), 
-                                                datetime.now().strftime('%Y:%m:%d')))
+                                                datetime.now()))
                 cursor.execute(guest_photo, (id, img_guest))
                 
                 sqliteConn.commit()
