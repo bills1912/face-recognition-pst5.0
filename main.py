@@ -30,6 +30,37 @@ sys.dont_write_bytecode = True
 sqliteConn = sqlite3.connect("face_recog_pst5_1200.db")
 cursor = sqliteConn.cursor()
 
+# Creating table
+tables = ['frecog_data', 'image_recog_data']
+for table in tables:
+    query = f"SELECT name from sqlite_master WHERE type='table' AND name='{tables}';"
+    check_table = cursor.execute(query)
+    if table == 'frecog_data':
+        if len(check_table) != 0:
+            continue
+        else:
+            personal_data_tabel = f""" CREATE TABLE {table} (
+                                        id VARCHAR(255) NOT NULL PRIMARY KEY,
+                                        name VARCHAR(255) NOT NULL,
+                                        job VARCHAR(255),
+                                        phone_number CHAR(30),
+                                        address VARCHAR(255),
+                                        total_attendance INT,
+                                        purpose VARCHAR(255),
+                                        last_attendance_time TIMESTAMP
+                                    ); """
+    elif table == 'image_recog_data':
+        if len(check_table) != 0:
+            continue
+        else:
+            image_recorded_data = f""" CREATE TABLE {table} (
+                                        id VARCHAR(255) NOT NULL PRIMARY KEY,
+                                        img_data BLOB
+                                    ); """
+
+cursor.execute(personal_data_tabel)
+cursor.execute(image_recorded_data)
+
 cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
@@ -132,13 +163,13 @@ while True:
                 imgStudent = cv2.imdecode(array, cv2.COLOR_BGRA2BGR)
                 
                 # Update data of attendance
-                datetimeObject = datetime.strptime(cursor.execute(f"""SELECT last_attendance_time FROM frecog_data WHERE id={id}""").fetchall()[0][0], "%Y-%m-%d-%H-%M-%S")
+                datetimeObject = datetime.strptime(cursor.execute(f"""SELECT last_attendance_time FROM frecog_data WHERE id={id}""").fetchall()[0][0], "%Y:%m:%d")
                 secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
                 if secondsElapsed > 30:
                     curr_total_attendance = cursor.execute(f"""SELECT total_attendance FROM frecog_data WHERE id={id}""").fetchall()[0][0]
                     curr_total_attendance += 1
                     cursor.execute(f"""UPDATE frecog_data SET total_attendance={curr_total_attendance} WHERE id={id}""")
-                    cursor.execute(f"""UPDATE frecog_data SET last_attendance_time={datetime.now().strftime("%Y-%m-%d-%H-%M-%S")} WHERE id={id}""")
+                    cursor.execute(f"""UPDATE frecog_data SET last_attendance_time={datetime.now().strftime("%Y:%m:%d")} WHERE id={id}""")
                     sqliteConn.commit()
                 else:
                     modeType = 3
