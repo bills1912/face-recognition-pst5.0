@@ -8,6 +8,7 @@ import sqlite3
 import pyttsx3
 import numpy as np
 import face_recognition
+import tkinter as tk
 from pydub import AudioSegment
 from pydub.playback import play
 from form_guest import new_guest_form
